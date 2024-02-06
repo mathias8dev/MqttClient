@@ -72,12 +72,22 @@ android {
 
 dependencies {
 
+    // Vico
+
+    val vicoVersion = "1.13.1"
+    implementation("com.patrykandpatrick.vico:compose:$vicoVersion")
+    implementation("com.patrykandpatrick.vico:compose-m3:$vicoVersion")
+    implementation("com.patrykandpatrick.vico:core:$vicoVersion")
+
     // Kotlin-yup
 
     val kotlinYupVersion = "1.0.1"
     implementation("com.github.mathias8dev:kotlin-yup:$kotlinYupVersion")
 
-    implementation("androidx.lifecycle:lifecycle-service:2.7.0")
+    // lifecycle-service
+
+    val lifecycleServiceVersion = "2.7.0"
+    implementation("androidx.lifecycle:lifecycle-service:$lifecycleServiceVersion")
 
     // workManager
 
