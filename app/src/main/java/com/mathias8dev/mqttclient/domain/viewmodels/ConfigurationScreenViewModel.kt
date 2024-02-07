@@ -1,4 +1,4 @@
-package com.mathias8dev.mqttclient.domain
+package com.mathias8dev.mqttclient.domain.viewmodels
 
 import android.util.Log
 import androidx.datastore.core.DataStore

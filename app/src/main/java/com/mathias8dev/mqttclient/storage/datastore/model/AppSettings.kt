@@ -6,5 +6,8 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class AppSettings(
-    val selectedConfigId: Long = -1
+    val selectedConfigId: Long = -1,
+    val useDarkMode: Boolean = false,
+    val useFloatingMenu: Boolean = false,
+    val maintainConnectionToServerActive: Boolean = true
 ): Parcelable

@@ -1,4 +1,4 @@
-package com.mathias8dev.mqttclient.domain
+package com.mathias8dev.mqttclient.domain.viewmodels
 
 import androidx.datastore.core.DataStore
 import androidx.lifecycle.ViewModel
@@ -27,6 +27,9 @@ class VisualisationScreenViewModel @Inject constructor(
     private val _hasDefinedConfig = MutableStateFlow(true)
     val hasDefinedConfig = _hasDefinedConfig.asStateFlow()
 
+    private val _useFloatingMenu = MutableStateFlow(false)
+    val useFloatingMenu = _hasDefinedConfig.asStateFlow()
+
     init {
 
         viewModelScope.launch {
@@ -36,6 +39,7 @@ class VisualisationScreenViewModel @Inject constructor(
 
             appSettingsStore.data.collect {
                 _hasDefinedConfig.emit(it.selectedConfigId == -1L)
+                _useFloatingMenu.emit(it.useFloatingMenu)
             }
         }
     }

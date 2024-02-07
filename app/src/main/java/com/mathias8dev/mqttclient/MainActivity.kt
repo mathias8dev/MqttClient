@@ -20,25 +20,32 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import com.mathias8dev.mqttclient.domain.event.EventBus
 import com.mathias8dev.mqttclient.domain.event.MQTTClientEvent
+import com.mathias8dev.mqttclient.domain.viewmodels.MainActivityViewModel
 import com.mathias8dev.mqttclient.ui.composables.TransparentStatusBar
 import com.mathias8dev.mqttclient.ui.screens.NavGraphs
 import com.mathias8dev.mqttclient.ui.theme.MqttClientTheme
 import com.ramcosta.composedestinations.DestinationsNavHost
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
+import javax.inject.Inject
 
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         super.onCreate(savedInstanceState)
@@ -46,7 +53,13 @@ class MainActivity : ComponentActivity() {
 
 
         setContent {
-            MqttClientTheme {
+
+            val viewModel: MainActivityViewModel = hiltViewModel()
+            val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
+
+            MqttClientTheme(
+                darkTheme = appSettings.useDarkMode
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -58,7 +71,8 @@ class MainActivity : ComponentActivity() {
                         EventListener {showContent, content ->
                             if (showContent && content != null) {
                                 Row(
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier
+                                        .fillMaxWidth()
                                         .height(50.dp)
                                         .background(MaterialTheme.colorScheme.primary),
                                     verticalAlignment = Alignment.CenterVertically,

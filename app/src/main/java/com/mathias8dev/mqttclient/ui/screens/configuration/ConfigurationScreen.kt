@@ -28,7 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.mathias8dev.mqttclient.domain.ConfigurationScreenViewModel
+import com.mathias8dev.mqttclient.domain.viewmodels.ConfigurationScreenViewModel
 import com.mathias8dev.mqttclient.domain.utils.thenSync
 import com.mathias8dev.mqttclient.ui.composables.ContentDetailsLayout
 import com.mathias8dev.mqttclient.ui.composables.StandardDialog
@@ -43,7 +43,7 @@ import timber.log.Timber
 
 @Composable
 @Destination
-@RootNavGraph(start = true)
+@RootNavGraph
 fun ConfigurationScreen(
     navigator: DestinationsNavigator,
     viewModel: ConfigurationScreenViewModel = hiltViewModel()
