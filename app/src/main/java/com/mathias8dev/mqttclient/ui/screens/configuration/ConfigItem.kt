@@ -21,31 +21,30 @@ import com.mathias8dev.mqttclient.R
 
 @Composable
 fun ConfigItem(
+    modifier: Modifier = Modifier,
     @DrawableRes drawableRes: Int,
     title: String,
     value: String,
     textColor: Color = MaterialTheme.colorScheme.onPrimaryContainer
 ) {
     Row(
-        modifier = Modifier.wrapContentSize(),
+        modifier = Modifier.wrapContentSize().then(modifier),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Icon(
             painter = painterResource(id = drawableRes),
             contentDescription = null,
-            tint = textColor
         )
         Column(modifier = Modifier.wrapContentSize()) {
             Text(
                 text = title,
-                fontSize = 14.sp,
-                color = textColor.copy(0.9f)
+                fontSize = 10.sp,
+                style = MaterialTheme.typography.titleSmall
             )
             Text(
                 text = value,
-                fontSize = 18.sp,
-                color = textColor
+                style = MaterialTheme.typography.bodyMedium
             )
         }
     }

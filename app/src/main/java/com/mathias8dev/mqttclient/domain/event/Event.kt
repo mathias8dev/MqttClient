@@ -7,11 +7,30 @@ abstract class Event
 
 abstract class MQTTClientEvent: Event() {
 
-    data object IDle: MQTTClientEvent()
+    data object IDLE: MQTTClientEvent()
     data object MQTTClientDisconnectedFromServer: MQTTClientEvent()
     data object MQTTClientConnectedToServer: MQTTClientEvent()
-    data class MQTTClientException(
-        val config: Config?,
-        val cause: Throwable
+
+    abstract class MQTTClientException(
+        open val config: Config?,
+        open val cause: Throwable
     ): MQTTClientEvent()
+    data class MQTTClientInitializationException(
+        override val config: Config?,
+        override val cause: Throwable
+    ): MQTTClientException(config, cause)
+
+    data class MQTTClientConnectException(
+        override val config: Config?,
+        override val cause: Throwable
+    ): MQTTClientException(config, cause)
+    data class MQTTClientTopicSubscriptionException(
+        override val config: Config?,
+        override val cause: Throwable
+    ): MQTTClientException(config, cause)
+
+    data class MQTTClientDisconnectException(
+        override val config: Config?,
+        override val cause: Throwable
+    ): MQTTClientException(config, cause)
 }

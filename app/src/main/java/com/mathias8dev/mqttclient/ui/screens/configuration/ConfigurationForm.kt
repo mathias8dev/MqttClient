@@ -162,7 +162,7 @@ fun ConfigurationForm(
             Icon(
                 imageVector = Icons.Default.Info,
                 contentDescription = null,
-                tint = Color.Red.copy(alpha = 0.8f),
+                tint = MaterialTheme.colorScheme.error,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .size(64.dp)

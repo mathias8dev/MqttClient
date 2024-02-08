@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,9 +29,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mathias8dev.mqttclient.R
 import com.mathias8dev.mqttclient.domain.viewmodels.ConfigurationScreenViewModel
 import com.mathias8dev.mqttclient.domain.utils.thenSync
 import com.mathias8dev.mqttclient.ui.composables.ContentDetailsLayout
+import com.mathias8dev.mqttclient.ui.composables.LottieAnimation
 import com.mathias8dev.mqttclient.ui.composables.StandardDialog
 import com.mathias8dev.mqttclient.ui.composables.SuccessDialog
 import com.ramcosta.composedestinations.annotation.Destination
@@ -114,10 +117,13 @@ fun ConfigurationScreen(
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Icon(imageVector = Icons.Default.Info, contentDescription = null)
+                    LottieAnimation(
+                        animationRes = R.raw.lottie_empty
+                    )
                     Text(
                         text = "Aucune configuration n'est présente dans la base de données",
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodySmall
                     )
                 }
             }

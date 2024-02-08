@@ -15,6 +15,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,12 +42,14 @@ fun ConfigComposable(
             .fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = if (currentSelectedConfigId == config.id)
-                MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.secondary
+                MaterialTheme.colorScheme.primaryContainer
+            else MaterialTheme.colorScheme.secondaryContainer
         )
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
@@ -89,16 +92,11 @@ fun ConfigComposable(
                 )
             }
 
-            IconButton(
-                modifier = Modifier.align(Alignment.CenterVertically),
-                onClick = {
-                    onConfigToggle(config)
-                }) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_settings_24),
-                    contentDescription = null
-                )
-            }
+            Switch(
+                checked = currentSelectedConfigId == config.id,
+                onCheckedChange = { onConfigToggle(config) }
+            )
+
         }
 
     }

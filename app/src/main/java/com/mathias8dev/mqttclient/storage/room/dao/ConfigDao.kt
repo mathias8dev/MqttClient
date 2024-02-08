@@ -13,13 +13,16 @@ import kotlinx.coroutines.flow.Flow
 interface ConfigDao {
 
     @Query("SELECT * FROM configs")
-    fun getAllConfigs(): Flow<List<Config>>
+    suspend fun getAllConfigs(): List<Config>
+
+    @Query("SELECT * FROM configs")
+    fun getAllConfigsFlow(): Flow<List<Config>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertConfig(config: Config)
 
     @Query("SELECT * FROM configs ORDER BY id DESC LIMIT 1")
-    fun getLatestConfig(): Flow<Config?>
+    fun getLatestConfigFlow(): Flow<Config?>
 
     @Delete
     suspend fun deleteConfig(config: Config)

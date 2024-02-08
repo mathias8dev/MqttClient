@@ -22,7 +22,7 @@ class ConfigRepository @Inject constructor(
 
     suspend fun getLatestConfig(): Flow<Config?> {
         return channelFlow {
-            configDao.getAllConfigs().collectLatest { configs ->
+            configDao.getAllConfigsFlow().collectLatest { configs ->
                 if (configs.isNotEmpty()) send(configs.last())
                 else send(null)
 
@@ -31,12 +31,16 @@ class ConfigRepository @Inject constructor(
         }
     }
 
-    fun getAllConfigs(): Flow<List<Config>> {
+    suspend fun getAllConfigs(): List<Config> {
         return configDao.getAllConfigs()
     }
 
+    fun getAllConfigsFlow(): Flow<List<Config>> {
+        return configDao.getAllConfigsFlow()
+    }
+
     fun fastLatestConfig(): Flow<Config?> {
-        return configDao.getLatestConfig()
+        return configDao.getLatestConfigFlow()
     }
 
     suspend fun findConfigById(configId: Long): Config? {

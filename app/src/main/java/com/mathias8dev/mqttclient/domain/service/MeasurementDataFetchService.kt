@@ -6,8 +6,6 @@ import android.os.Build
 import android.os.PowerManager
 import androidx.datastore.core.DataStore
 import androidx.lifecycle.LifecycleService
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import com.google.gson.Gson
 import com.mathias8dev.mqttclient.domain.event.EventBus
@@ -67,7 +65,8 @@ class MeasurementDataFetchService : LifecycleService() {
         lifecycleScope.launch {
             appSettingsStore.data.collectLatest {
                 configRepository.findConfigById(it.selectedConfigId).let { config ->
-                    latestConfig = config
+                    Timber.d("The found config with id ${it.selectedConfigId} is $config")
+                    latestConfig = config?.copy()
                     onConfigChanged()
                 }
             }
@@ -76,18 +75,19 @@ class MeasurementDataFetchService : LifecycleService() {
 
     private fun onConfigChanged() {
 
-        latestConfig?.let {
-
+        latestConfig?.let {config ->
+            Timber.d("OnConfigChanged, the config is $config")
             runCatching {
                 mqttClient = MqttClient(
-                    it.toMQTTServerUri(),
+                    config.toMQTTServerUri(),
                     MqttClient.generateClientId()
                 )
             }.onFailure {
                 lifecycleScope.launch {
+                    Timber.d("Exception, the config is $config")
                     EventBus.publish(
-                        MQTTClientEvent.MQTTClientException(
-                            config = latestConfig?.copy(),
+                        MQTTClientEvent.MQTTClientInitializationException(
+                            config = config.copy(),
                             cause = it
                         )
                     )
@@ -101,6 +101,12 @@ class MeasurementDataFetchService : LifecycleService() {
         } ?: stopJob() // Stop the job if null
     }
 
+    private fun publishIdle() {
+        lifecycleScope.launch {
+            EventBus.publish(MQTTClientEvent.IDLE)
+        }
+    }
+
 
     private fun fetchData() {
         Timber.d("FetchData called")
@@ -112,8 +118,8 @@ class MeasurementDataFetchService : LifecycleService() {
                 Timber.d("An error occurred when trying to connect to the server")
                 lifecycleScope.launch {
                     EventBus.publish(
-                        MQTTClientEvent.MQTTClientException(
-                            config = latestConfig,
+                        MQTTClientEvent.MQTTClientConnectException(
+                            config = latestConfig?.copy(),
                             cause = it
                         )
                     )
@@ -142,8 +148,8 @@ class MeasurementDataFetchService : LifecycleService() {
                     Timber.d("An error occurred when subscribing to the topic")
                     lifecycleScope.launch {
                         EventBus.publish(
-                            MQTTClientEvent.MQTTClientException(
-                                config = latestConfig,
+                            MQTTClientEvent.MQTTClientTopicSubscriptionException(
+                                config = latestConfig?.copy(),
                                 cause = it
                             )
                         )
@@ -171,7 +177,7 @@ class MeasurementDataFetchService : LifecycleService() {
             Timber.d("An error occurred when disconnecting from the server")
             lifecycleScope.launch {
                 EventBus.publish(
-                    MQTTClientEvent.MQTTClientException(
+                    MQTTClientEvent.MQTTClientDisconnectException(
                         config = latestConfig,
                         cause = it
                     )

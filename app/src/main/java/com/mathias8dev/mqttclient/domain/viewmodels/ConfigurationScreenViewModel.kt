@@ -36,7 +36,7 @@ class ConfigurationScreenViewModel @Inject constructor(
         Log.d(ConfigurationScreenViewModel::class.java.simpleName, "The list of configs is ${configurationsFlow.value}")
         viewModelScope.launch {
             launch {
-                configRepository.getAllConfigs().collect {
+                configRepository.getAllConfigsFlow().collect {
                     Log.d(ConfigurationScreenViewModel::class.java.simpleName, "The list of configs is $it")
                     _configurationsFlow.emit(it)
                 }
