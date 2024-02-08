@@ -19,6 +19,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.mathias8dev.mqttclient.R
@@ -93,6 +94,7 @@ fun ConfigComposable(
             }
 
             Switch(
+                modifier = Modifier.scale(0.8f),
                 checked = currentSelectedConfigId == config.id,
                 onCheckedChange = { onConfigToggle(config) }
             )
