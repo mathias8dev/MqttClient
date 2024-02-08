@@ -25,9 +25,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -35,11 +38,14 @@ import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.mathias8dev.mqttclient.domain.event.EventBus
+import com.mathias8dev.mqttclient.domain.event.LocalLoggingEvents
+import com.mathias8dev.mqttclient.domain.event.LoggingEvent
 import com.mathias8dev.mqttclient.domain.event.MQTTClientEvent
 import com.mathias8dev.mqttclient.domain.viewmodels.MainActivityViewModel
 import com.mathias8dev.mqttclient.storage.datastore.model.LocalAppSettings
-import com.mathias8dev.mqttclient.ui.composables.TransparentStatusBar
 import com.mathias8dev.mqttclient.ui.screens.NavGraphs
 import com.mathias8dev.mqttclient.ui.screens.destinations.VisualisationScreenDestination
 import com.mathias8dev.mqttclient.ui.theme.MqttClientTheme
@@ -66,6 +72,22 @@ class MainActivity : ComponentActivity() {
 
             val viewModel: MainActivityViewModel = hiltViewModel()
             val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
+            val loggingEvents = rememberSaveable(
+                saver = listSaver(
+                    save = {
+                        val gson = Gson()
+                        listOf(gson.toJson(it.toList()))
+                    },
+                    restore = {
+                        val gson = Gson()
+                        val typeToken = object : TypeToken<ArrayList<LoggingEvent>>() {}.type
+                        val data: List<LoggingEvent> = gson.fromJson(it.first(), typeToken)
+                        SnapshotStateList<LoggingEvent>().apply { addAll(data) }
+                    }
+                )
+            ) {
+                mutableStateListOf<LoggingEvent>()
+            }
             val navController = rememberNavController()
             val currentDestinationIsVisualisationScreen by produceState(
                 initialValue = true,
@@ -76,8 +98,15 @@ class MainActivity : ComponentActivity() {
                 }
             )
 
+            LaunchedEffect(Unit) {
+                EventBus.subscribe<LoggingEvent> {
+                    loggingEvents.add(it)
+                }
+            }
+
             CompositionLocalProvider(
-                LocalAppSettings provides appSettings
+                LocalAppSettings provides appSettings,
+                LocalLoggingEvents provides loggingEvents
             ) {
                 MqttClientTheme(
                     darkTheme = appSettings.useDarkMode
@@ -210,7 +239,7 @@ fun EventListener(
 
                 is MQTTClientEvent.MQTTClientException -> {
                     Timber.d("The used config is : ${it.config}")
-                    Timber.e("The cause is ${it.cause}")
+                    Timber.e(it.cause, "The cause is ${it.cause}")
                     when (it) {
                         is MQTTClientEvent.MQTTClientDisconnectException -> {
                             showNotification.value = true

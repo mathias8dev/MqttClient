@@ -4,7 +4,6 @@ import com.mathias8dev.mqttclient.storage.room.model.Config
 
 abstract class Event
 
-
 abstract class MQTTClientEvent: Event() {
 
     data object IDLE: MQTTClientEvent()
