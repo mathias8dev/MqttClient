@@ -3,11 +3,21 @@ package com.mathias8dev.mqttclient.ui.screens.settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -15,7 +25,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mathias8dev.mqttclient.domain.viewmodels.SettingsScreenViewModel
 import com.mathias8dev.mqttclient.storage.datastore.model.AppSettings
 import com.mathias8dev.mqttclient.storage.datastore.model.LocalAppSettings
+import com.mathias8dev.mqttclient.ui.composables.ConfirmationDialog
 import com.mathias8dev.mqttclient.ui.composables.ContentDetailsLayout
+import com.mathias8dev.mqttclient.ui.composables.SuccessDialog
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
@@ -30,6 +42,17 @@ fun SettingsScreen(
 ) {
 
     val appSettings = LocalAppSettings.current
+
+    val isSettingsReinitialized by viewModel.settingsReinitializedSuccessfully.collectAsStateWithLifecycle()
+    val isDatabaseReinitialized by viewModel.databaseReinitializedSuccessfully.collectAsStateWithLifecycle()
+
+    val showConfirmSettingsReinitializationDialog = rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    val showConfirmDatabaseReinitializationDialog = rememberSaveable {
+        mutableStateOf(false)
+    }
 
     ContentDetailsLayout(
         title = "Paramètres",
@@ -113,6 +136,73 @@ fun SettingsScreen(
                     }
                 )
             }
+
+            OutlinedButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(8.dp),
+                onClick = {
+                    showConfirmSettingsReinitializationDialog.value = true
+                }) {
+                Text(text = "Réinitialiser les paramètres")
+            }
+
+            OutlinedButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error,
+                ),
+                onClick = {
+                    showConfirmDatabaseReinitializationDialog.value = true
+                }) {
+                Text(text = "Réinitialiser la base de données")
+            }
         }
+    }
+
+    if (isDatabaseReinitialized) {
+        SuccessDialog(
+            message = "La base de données a été réinitialisée avec succès"
+        ) {
+            viewModel.consumeDatabaseReinitializedEvent()
+        }
+    }
+
+    if (isSettingsReinitialized) {
+        SuccessDialog(
+            message = "Les paramètres ont été réinitialisés avec succès"
+        ) {
+            viewModel.consumeSettingsReinitializedEvent()
+        }
+    }
+
+    if (showConfirmDatabaseReinitializationDialog.value) {
+        ConfirmationDialog(
+            message = "Voulez-vous poursuivre votre opération ?",
+            onDismissRequest = {
+                showConfirmDatabaseReinitializationDialog.value = false
+            },
+            onConfirmClicked = {
+                viewModel.onReinitializeDatabase()
+                showConfirmDatabaseReinitializationDialog.value = false
+            }
+        )
+    }
+
+    if (showConfirmSettingsReinitializationDialog.value) {
+        ConfirmationDialog(
+            message = "Voulez-vous poursuivre votre opération ?",
+            onDismissRequest = {
+                showConfirmSettingsReinitializationDialog.value = false
+            },
+            onConfirmClicked = {
+                viewModel.onReinitializeSettings()
+                showConfirmSettingsReinitializationDialog.value = false
+            }
+        )
     }
 }

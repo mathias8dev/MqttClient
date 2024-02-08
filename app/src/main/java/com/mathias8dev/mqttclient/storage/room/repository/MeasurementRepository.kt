@@ -21,4 +21,8 @@ class MeasurementRepository @Inject constructor(
     suspend fun deleteMeasurement(measurement: Measurement) {
         measurementDao.deleteMeasurement(measurement)
     }
+
+    suspend fun deleteAll() {
+        measurementDao.deleteAll()
+    }
 }

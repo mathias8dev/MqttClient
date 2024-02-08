@@ -29,4 +29,7 @@ interface ConfigDao {
 
     @Query("SELECT * FROM configs WHERE id = :configId")
     suspend fun findConfigById(configId: Long): Config?
+
+    @Query("DELETE FROM configs")
+    suspend fun deleteAll()
 }

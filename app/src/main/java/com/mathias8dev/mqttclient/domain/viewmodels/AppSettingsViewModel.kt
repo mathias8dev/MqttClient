@@ -15,7 +15,7 @@ abstract class AppSettingsViewModel(
     protected val appSettingsStore: DataStore<AppSettings>
 ): ViewModel() {
 
-    protected val _appSettings = MutableStateFlow(AppSettings())
+    private val _appSettings = MutableStateFlow(AppSettings())
     val appSettings = _appSettings.asStateFlow()
 
     init {

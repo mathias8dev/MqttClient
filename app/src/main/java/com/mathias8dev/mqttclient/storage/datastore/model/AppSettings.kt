@@ -13,7 +13,7 @@ data class AppSettings(
     val maintainConnectionToServerActive: Boolean = true,
     val isZoomEnabled: Boolean = false,
     val animateChartDisplay: Boolean = false,
-    val useDeveloperMode: Boolean = true,
+    val useDeveloperMode: Boolean = false,
 ): Parcelable
 
 val LocalAppSettings = compositionLocalOf { AppSettings() }

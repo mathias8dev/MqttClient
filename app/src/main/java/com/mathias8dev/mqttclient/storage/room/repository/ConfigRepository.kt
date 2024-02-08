@@ -47,4 +47,8 @@ class ConfigRepository @Inject constructor(
         return configDao.findConfigById(configId)
     }
 
+    suspend fun deleteAll() {
+        configDao.deleteAll()
+    }
+
 }
