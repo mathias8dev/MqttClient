@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 
@@ -27,15 +28,20 @@ class SettingsScreenViewModel @Inject constructor(
 
 
     fun onReinitializeDatabase() {
+        Timber.d("OnReinitializeDatabase")
         viewModelScope.launch {
             configRepository.deleteAll()
             measurementRepository.deleteAll()
+            appSettingsStore.updateData {
+                it.copy(selectedConfigId = -1)
+            }
             _databaseReinitializedSuccessfully.emit(true)
         }
 
     }
 
     fun onReinitializeSettings() {
+        Timber.d("onReinitializeSettings")
         viewModelScope.launch {
             appSettingsStore.updateData {
                 AppSettings()
@@ -45,12 +51,14 @@ class SettingsScreenViewModel @Inject constructor(
     }
 
     fun consumeSettingsReinitializedEvent() {
+        Timber.d("consumeSettingsReinitializedEvent")
         viewModelScope.launch {
             _settingsReinitializedSuccessfully.emit(false)
         }
     }
 
     fun consumeDatabaseReinitializedEvent() {
+        Timber.d("consumeDatabaseReinitializedEvent")
         viewModelScope.launch {
             _databaseReinitializedSuccessfully.emit(false)
         }
