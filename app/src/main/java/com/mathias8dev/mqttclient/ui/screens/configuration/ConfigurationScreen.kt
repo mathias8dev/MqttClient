@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -136,10 +135,10 @@ fun ConfigurationScreen(
 
     if (showAddConfigurationDialog) {
         StandardDialog(
-            contentPadding = PaddingValues(0.dp),
             onDismissRequest = {
                 showAddConfigurationDialog = false
-            }
+            },
+            contentPadding = PaddingValues(0.dp)
         ) {
             ConfigurationForm(
                 onSubmitClicked = { config ->

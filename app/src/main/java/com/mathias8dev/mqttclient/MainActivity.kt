@@ -22,6 +22,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +38,7 @@ import androidx.navigation.compose.rememberNavController
 import com.mathias8dev.mqttclient.domain.event.EventBus
 import com.mathias8dev.mqttclient.domain.event.MQTTClientEvent
 import com.mathias8dev.mqttclient.domain.viewmodels.MainActivityViewModel
+import com.mathias8dev.mqttclient.storage.datastore.model.LocalAppSettings
 import com.mathias8dev.mqttclient.ui.composables.TransparentStatusBar
 import com.mathias8dev.mqttclient.ui.screens.NavGraphs
 import com.mathias8dev.mqttclient.ui.screens.destinations.VisualisationScreenDestination
@@ -74,42 +76,46 @@ class MainActivity : ComponentActivity() {
                 }
             )
 
-            MqttClientTheme(
-                darkTheme = appSettings.useDarkMode
+            CompositionLocalProvider(
+                LocalAppSettings provides appSettings
             ) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                MqttClientTheme(
+                    darkTheme = appSettings.useDarkMode
                 ) {
-
-
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .systemBarsPadding()
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background
                     ) {
-                        EventListener { isException, showContent, content ->
 
-                            if (showContent &&
-                                content != null &&
-                                currentDestinationIsVisualisationScreen
-                            ) {
-                                EventDisplay(
-                                    isException,
-                                    content
-                                )
-                            }
-                        }
-                        Scaffold(
+
+                        Column(
                             modifier = Modifier
                                 .fillMaxSize()
-                        ) { _ ->
-                            DestinationsNavHost(
-                                navController = navController,
-                                navGraph = NavGraphs.root
-                            )
-                        }
+                                .systemBarsPadding()
+                        ) {
+                            EventListener { isException, showContent, content ->
 
+                                if (showContent &&
+                                    content != null &&
+                                    currentDestinationIsVisualisationScreen
+                                ) {
+                                    EventDisplay(
+                                        isException,
+                                        content
+                                    )
+                                }
+                            }
+                            Scaffold(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                            ) { _ ->
+                                DestinationsNavHost(
+                                    navController = navController,
+                                    navGraph = NavGraphs.root
+                                )
+                            }
+
+                        }
                     }
                 }
             }

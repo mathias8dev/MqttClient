@@ -1,6 +1,7 @@
 package com.mathias8dev.mqttclient.storage.datastore.model
 
 import android.os.Parcelable
+import androidx.compose.runtime.compositionLocalOf
 import kotlinx.parcelize.Parcelize
 
 
@@ -12,5 +13,7 @@ data class AppSettings(
     val maintainConnectionToServerActive: Boolean = true,
     val isZoomEnabled: Boolean = false,
     val animateChartDisplay: Boolean = false,
-    val useDeveloperMode: Boolean = false,
+    val useDeveloperMode: Boolean = true,
 ): Parcelable
+
+val LocalAppSettings = compositionLocalOf { AppSettings() }

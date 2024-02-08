@@ -17,21 +17,4 @@ import kotlin.reflect.KProperty1
 @HiltViewModel
 class SettingsScreenViewModel @Inject constructor(
     appSettingsStore: DataStore<AppSettings>
-): AppSettingsViewModel(appSettingsStore) {
-
-
-
-    fun <V> onAppSettingsChanged(property: KProperty1<AppSettings, V>, updatedValue: V) {
-        viewModelScope.launch {
-            appSettingsStore.updateData {
-                val updated = it.copy()
-                updated.javaClass.declaredFields.find { field -> field.name == property.name }?.let {field ->
-                    field.isAccessible = true
-                    field.set(updated, updatedValue)
-                }
-
-                updated
-            }
-        }
-    }
-}
+): AppSettingsViewModel(appSettingsStore)

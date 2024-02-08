@@ -14,6 +14,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mathias8dev.mqttclient.domain.viewmodels.SettingsScreenViewModel
 import com.mathias8dev.mqttclient.storage.datastore.model.AppSettings
+import com.mathias8dev.mqttclient.storage.datastore.model.LocalAppSettings
 import com.mathias8dev.mqttclient.ui.composables.ContentDetailsLayout
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
@@ -28,7 +29,7 @@ fun SettingsScreen(
     viewModel: SettingsScreenViewModel = hiltViewModel()
 ) {
 
-    val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
+    val appSettings = LocalAppSettings.current
 
     ContentDetailsLayout(
         title = "Paramètres",

@@ -1,6 +1,5 @@
 package com.mathias8dev.mqttclient.domain.viewmodels
 
-import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 
@@ -33,11 +33,11 @@ class ConfigurationScreenViewModel @Inject constructor(
     val showConfigInsertedDialog = _showConfigInsertedDialog.asStateFlow()
 
     init {
-        Log.d(ConfigurationScreenViewModel::class.java.simpleName, "The list of configs is ${configurationsFlow.value}")
+        Timber.d("The list of configs is ${configurationsFlow.value}")
         viewModelScope.launch {
             launch {
                 configRepository.getAllConfigsFlow().collect {
-                    Log.d(ConfigurationScreenViewModel::class.java.simpleName, "The list of configs is $it")
+                    Timber.d("The list of configs is $it")
                     _configurationsFlow.emit(it)
                 }
             }

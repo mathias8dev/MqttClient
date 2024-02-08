@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mathias8dev.mqttclient.domain.viewmodels.VisualisationScreenViewModel
+import com.mathias8dev.mqttclient.storage.datastore.model.LocalAppSettings
 import com.mathias8dev.mqttclient.storage.room.model.toChartModels
 import com.mathias8dev.mqttclient.ui.composables.ErrorDialog
 import com.mathias8dev.mqttclient.ui.screens.destinations.ConfigurationScreenDestination
@@ -39,22 +40,20 @@ fun VisualisationScreen(
 ) {
 
     val showNoConfigurationDefinedDialog = rememberSaveable {
+        mutableStateOf(true)
+    }
+    val showDevPanel = rememberSaveable {
         mutableStateOf(false)
     }
 
-    val useFloatingMenu by viewModel.useFloatingMenu.collectAsStateWithLifecycle()
-    val isZoomEnabled by viewModel.isZoomEnabled.collectAsStateWithLifecycle()
-    val animateChartDisplay by viewModel.animateChartDisplay.collectAsStateWithLifecycle()
+    val useFloatingMenu = LocalAppSettings.current.useFloatingMenu
+    val isZoomEnabled =  LocalAppSettings.current.isZoomEnabled
+    val animateChartDisplay =  LocalAppSettings.current.animateChartDisplay
+    val useDeveloperMode =  LocalAppSettings.current.useDeveloperMode
 
     val measurements = viewModel.measurements.collectAsStateWithLifecycle()
 
 
-    LaunchedEffect(key1 = Unit) {
-        viewModel.hasDefinedConfig.collectLatest { hasDefinedConfig ->
-
-            showNoConfigurationDefinedDialog.value = !hasDefinedConfig
-        }
-    }
 
     Box(
         modifier = Modifier
@@ -121,22 +120,33 @@ fun VisualisationScreen(
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 48.dp),
             makeMenuMovable = useFloatingMenu,
+            showDevPanelMenu = useDeveloperMode,
             onSettingsClicked = {
                 navigator.navigate(SettingsScreenDestination)
             },
             onConfigsClicked = {
                 navigator.navigate(ConfigurationScreenDestination)
+            },
+            onDevPanelClicked = {
+                showDevPanel.value = !showDevPanel.value
             }
         )
     }
 
-    if (showNoConfigurationDefinedDialog.value) {
+    if (showNoConfigurationDefinedDialog.value && LocalAppSettings.current.selectedConfigId == -1L) {
         ErrorDialog(
             errorMessage = "Aucune configuration n'a été définie",
             onDismissRequest = {
+                showNoConfigurationDefinedDialog.value = false
+            },
+            onOkayClicked = {
                 navigator.navigate(ConfigurationScreenDestination)
             }
         )
+    }
+
+    FloatingDevPanel(open = showDevPanel.value) {
+        showDevPanel.value = false
     }
 }
 

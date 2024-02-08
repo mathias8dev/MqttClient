@@ -18,39 +18,18 @@ import javax.inject.Inject
 
 @HiltViewModel
 class VisualisationScreenViewModel @Inject constructor(
-    private val appSettingsStore: DataStore<AppSettings>,
-    private val configurationRepository: ConfigRepository,
     private val measurementRepository: MeasurementRepository
 ): ViewModel() {
 
     private val _measurements = MutableStateFlow<List<Measurement>>(emptyList())
     val measurements = _measurements.asStateFlow()
 
-    private val _hasDefinedConfig = MutableStateFlow(true)
-    val hasDefinedConfig = _hasDefinedConfig.asStateFlow()
-
-    private val _useFloatingMenu = MutableStateFlow(false)
-    val useFloatingMenu = _hasDefinedConfig.asStateFlow()
-
-    private val _isZoomEnabled = MutableStateFlow(false)
-    val isZoomEnabled = _hasDefinedConfig.asStateFlow()
-
-    private val _animateChartDisplay = MutableStateFlow(false)
-    val animateChartDisplay = _hasDefinedConfig.asStateFlow()
 
     init {
 
         viewModelScope.launch {
-            measurementRepository.getAllMeasurements().collect{
+            measurementRepository.getAllMeasurements().collect {
                 _measurements.emit(it)
-            }
-
-            appSettingsStore.data.collectLatest {
-                Timber.d("The latest appSettings is $it")
-                _hasDefinedConfig.emit(it.selectedConfigId == -1L)
-                _useFloatingMenu.emit(it.useFloatingMenu)
-                _isZoomEnabled.emit(it.isZoomEnabled)
-                _animateChartDisplay.emit(it.animateChartDisplay)
             }
         }
     }

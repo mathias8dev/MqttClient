@@ -22,11 +22,13 @@ fun ErrorDialog(
 @Composable
 fun ErrorDialog(
     errorMessage: String = "An error occurred when trying to process your request",
-    onDismissRequest: () -> Unit = {}
+    onDismissRequest: () -> Unit = {},
+    onOkayClicked: ()->Unit = onDismissRequest
 ) {
     SimpleLottieDialog(
         message = errorMessage,
         lottieRes = R.raw.lottie_error,
-        onDismissRequest = onDismissRequest
+        onDismissRequest = onDismissRequest,
+        onOkayClicked = onOkayClicked
     )
 }

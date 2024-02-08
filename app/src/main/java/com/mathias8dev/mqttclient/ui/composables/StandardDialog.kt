@@ -25,6 +25,7 @@ import com.mathias8dev.mqttclient.ui.utils.useModifierIf
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StandardDialog(
+    modifier: Modifier = Modifier,
     onDismissRequest: () -> Unit = {},
     cornerRadius: Dp = 8.dp,
     makeContentScrollable: Boolean = false,
@@ -33,7 +34,7 @@ fun StandardDialog(
 ) {
     val scrollState = rememberScrollState()
     AlertDialog(
-        modifier = Modifier
+        modifier = modifier
             .padding(16.dp)
             .fillMaxWidth(),
         onDismissRequest = onDismissRequest,

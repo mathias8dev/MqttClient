@@ -19,7 +19,6 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,6 +32,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.mathias8dev.mqttclient.R
+import com.mathias8dev.mqttclient.ui.utils.useModifierIf
 import timber.log.Timber
 
 
@@ -40,8 +40,10 @@ import timber.log.Timber
 fun FloatingMenu(
     modifier: Modifier = Modifier,
     makeMenuMovable: Boolean,
+    showDevPanelMenu: Boolean,
     onConfigsClicked: () -> Unit,
     onSettingsClicked: () -> Unit,
+    onDevPanelClicked: () -> Unit,
 ) {
 
     val showMenuItems = rememberSaveable {
@@ -58,23 +60,21 @@ fun FloatingMenu(
         targetValue = if (showMenuItems.value) 180f else 0f
     )
 
-    val movable  by remember{ mutableStateOf(makeMenuMovable) }
+    val movable by remember { mutableStateOf(makeMenuMovable) }
 
     LaunchedEffect(key1 = movable, block = {
         Timber.d("Make menu movable $movable")
     })
 
-    val movableModifier = modifier
-        .graphicsLayer {
-            if (movable) {
-                translationX = offset.x
-                translationY = offset.y
-            }
-        }
-        .transformable(state)
-
     Row(
-        modifier = movableModifier
+        modifier = modifier
+            .useModifierIf(makeMenuMovable) {
+                it.graphicsLayer {
+                    translationX = offset.x
+                    translationY = offset.y
+                }
+            }
+            .transformable(state)
             .wrapContentSize()
             .padding(8.dp)
             .border(
@@ -121,6 +121,15 @@ fun FloatingMenu(
                         painter = painterResource(id = R.drawable.ic_settings_remote_24),
                         contentDescription = null
                     )
+                }
+
+                if (showDevPanelMenu) {
+                    IconButton(onClick = onDevPanelClicked) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_programmer),
+                            contentDescription = null
+                        )
+                    }
                 }
             }
         }

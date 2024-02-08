@@ -20,12 +20,14 @@ import androidx.compose.ui.unit.dp
 fun SimpleLottieDialog(
     @StringRes messageRes: Int,
     @RawRes lottieRes: Int,
-    onDismissRequest : ()->Unit = {}
+    onDismissRequest : ()->Unit = {},
+    onOkayClicked : ()->Unit = onDismissRequest
 ) {
     SimpleLottieDialog(
         message = stringResource(id = messageRes),
         lottieRes = lottieRes,
-        onDismissRequest = onDismissRequest
+        onDismissRequest = onDismissRequest,
+        onOkayClicked = onOkayClicked
     )
 }
 
@@ -34,7 +36,8 @@ fun SimpleLottieDialog(
 fun SimpleLottieDialog(
     message: String,
     @RawRes lottieRes: Int,
-    onDismissRequest : ()->Unit = {}
+    onDismissRequest : ()->Unit = {},
+    onOkayClicked: () -> Unit = onDismissRequest
 ) {
     StandardDialog(
         onDismissRequest = onDismissRequest
@@ -57,7 +60,7 @@ fun SimpleLottieDialog(
                 .padding(top = 16.dp)
                 .align(Alignment.CenterHorizontally),
             shape = RoundedCornerShape(8.dp),
-            onClick = onDismissRequest
+            onClick = onOkayClicked
         ) {
             Text("OK")
         }
