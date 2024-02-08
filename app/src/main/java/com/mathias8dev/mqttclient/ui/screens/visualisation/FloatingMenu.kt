@@ -98,7 +98,8 @@ fun FloatingMenu(
             Icon(
                 modifier = Modifier.rotate(rotationValue),
                 imageVector = Icons.Default.KeyboardArrowLeft,
-                contentDescription = null
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimary
             )
         }
 
