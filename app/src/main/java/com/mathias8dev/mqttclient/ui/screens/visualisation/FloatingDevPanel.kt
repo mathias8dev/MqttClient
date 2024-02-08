@@ -48,7 +48,7 @@ fun FloatingDevPanel(
                         .fillMaxWidth()
                         .height(0.dp)
                         .weight(1f),
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 16.dp),
+                    contentPadding = PaddingValues(vertical = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     state = rememberLazyListState()
                 ) {
