@@ -3,6 +3,7 @@ package com.mathias8dev.mqttclient.ui.screens.visualisation
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Row
@@ -17,6 +18,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,10 +28,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.mathias8dev.mqttclient.R
+import timber.log.Timber
 
 
 @Composable
@@ -53,18 +58,30 @@ fun FloatingMenu(
         targetValue = if (showMenuItems.value) 180f else 0f
     )
 
-    val movableModifier = if (makeMenuMovable) modifier
+    val movable  by remember{ mutableStateOf(makeMenuMovable) }
+
+    LaunchedEffect(key1 = movable, block = {
+        Timber.d("Make menu movable $movable")
+    })
+
+    val movableModifier = modifier
         .graphicsLayer {
-            translationX = offset.x
-            translationY = offset.y
+            if (movable) {
+                translationX = offset.x
+                translationY = offset.y
+            }
         }
         .transformable(state)
-    else modifier
 
     Row(
         modifier = movableModifier
             .wrapContentSize()
             .padding(8.dp)
+            .border(
+                width = 2.dp,
+                shape = RoundedCornerShape(32.dp),
+                color = Color(0XFF505050)
+            )
             .background(
                 color = MaterialTheme.colorScheme.secondaryContainer,
                 shape = RoundedCornerShape(32.dp)

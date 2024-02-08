@@ -3,10 +3,8 @@ package com.mathias8dev.mqttclient.ui.screens.visualisation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -22,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mathias8dev.mqttclient.domain.viewmodels.VisualisationScreenViewModel
+import com.mathias8dev.mqttclient.storage.room.model.toChartModels
 import com.mathias8dev.mqttclient.ui.composables.ErrorDialog
 import com.mathias8dev.mqttclient.ui.screens.destinations.ConfigurationScreenDestination
 import com.mathias8dev.mqttclient.ui.screens.destinations.SettingsScreenDestination
@@ -44,6 +43,8 @@ fun VisualisationScreen(
     }
 
     val useFloatingMenu by viewModel.useFloatingMenu.collectAsStateWithLifecycle()
+    val isZoomEnabled by viewModel.isZoomEnabled.collectAsStateWithLifecycle()
+    val animateChartDisplay by viewModel.animateChartDisplay.collectAsStateWithLifecycle()
 
     val measurements = viewModel.measurements.collectAsStateWithLifecycle()
 
@@ -61,40 +62,57 @@ fun VisualisationScreen(
     ) {
         Column(
             modifier = Modifier
+                .padding(16.dp)
                 .align(Alignment.TopCenter)
                 .fillMaxSize()
-                .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            Text(text = "Historique des données reçues")
-            Spacer(modifier = Modifier.height(16.dp))
-            measurements.value.forEach {
-                MeasurementItem(
-                    name = "Temperature",
-                    value = it.temperature.toString()
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                MeasurementItem(
-                    name = "Humidité",
-                    value = it.humidity.toString()
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                MeasurementItem(
-                    name = "CO2",
-                    value = it.co2.toString()
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                MeasurementItem(
-                    name = "PH",
-                    value = it.ph.toString()
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                MeasurementItem(
-                    name = "Alcool",
-                    value = it.alcohol.toString()
-                )
-                Spacer(modifier = Modifier.height(10.dp))
 
+            measurements.value.toChartModels().let {
+                MeasurementDisplay(
+                    modifier = Modifier.padding(top = 16.dp),
+                    chartTitle = "Temperature",
+                    chartModel = it.temperature,
+                    chartHeight = 200.dp,
+                    isZoomEnabled = isZoomEnabled,
+                    animateChartDisplay = animateChartDisplay
+                )
+
+                MeasurementDisplay(
+                    modifier = Modifier.padding(top = 16.dp),
+                    chartTitle = "Humidité",
+                    chartModel = it.humidity,
+                    chartHeight = 200.dp,
+                    isZoomEnabled = isZoomEnabled,
+                    animateChartDisplay = animateChartDisplay
+                )
+
+                MeasurementDisplay(
+                    modifier = Modifier.padding(top = 16.dp),
+                    chartTitle = "CO2",
+                    chartModel = it.co2,
+                    chartHeight = 200.dp,
+                    isZoomEnabled = isZoomEnabled,
+                    animateChartDisplay = animateChartDisplay
+                )
+
+                MeasurementDisplay(
+                    modifier = Modifier.padding(top = 16.dp),
+                    chartTitle = "PH",
+                    chartModel = it.ph,
+                    chartHeight = 200.dp,
+                    isZoomEnabled = isZoomEnabled,
+                    animateChartDisplay = animateChartDisplay
+                )
+
+                MeasurementDisplay(
+                    modifier = Modifier.padding(top = 16.dp),
+                    chartTitle = "Alcool",
+                    chartModel = it.alcohol,
+                    chartHeight = 200.dp,
+                    isZoomEnabled = isZoomEnabled,
+                    animateChartDisplay = animateChartDisplay
+                )
             }
         }
 

@@ -10,7 +10,9 @@ import com.mathias8dev.mqttclient.storage.room.repository.MeasurementRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 
@@ -30,6 +32,12 @@ class VisualisationScreenViewModel @Inject constructor(
     private val _useFloatingMenu = MutableStateFlow(false)
     val useFloatingMenu = _hasDefinedConfig.asStateFlow()
 
+    private val _isZoomEnabled = MutableStateFlow(false)
+    val isZoomEnabled = _hasDefinedConfig.asStateFlow()
+
+    private val _animateChartDisplay = MutableStateFlow(false)
+    val animateChartDisplay = _hasDefinedConfig.asStateFlow()
+
     init {
 
         viewModelScope.launch {
@@ -37,9 +45,12 @@ class VisualisationScreenViewModel @Inject constructor(
                 _measurements.emit(it)
             }
 
-            appSettingsStore.data.collect {
+            appSettingsStore.data.collectLatest {
+                Timber.d("The latest appSettings is $it")
                 _hasDefinedConfig.emit(it.selectedConfigId == -1L)
                 _useFloatingMenu.emit(it.useFloatingMenu)
+                _isZoomEnabled.emit(it.isZoomEnabled)
+                _animateChartDisplay.emit(it.animateChartDisplay)
             }
         }
     }

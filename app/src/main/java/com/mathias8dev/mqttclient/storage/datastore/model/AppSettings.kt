@@ -9,5 +9,8 @@ data class AppSettings(
     val selectedConfigId: Long = -1,
     val useDarkMode: Boolean = false,
     val useFloatingMenu: Boolean = false,
-    val maintainConnectionToServerActive: Boolean = true
+    val maintainConnectionToServerActive: Boolean = true,
+    val isZoomEnabled: Boolean = false,
+    val animateChartDisplay: Boolean = false,
+    val useDeveloperMode: Boolean = false,
 ): Parcelable

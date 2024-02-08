@@ -73,12 +73,14 @@ fun ContentDetailsLayout(
             ) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "back icon"
+                    contentDescription = "back icon",
+                    tint = MaterialTheme.colorScheme.onPrimary,
                 )
             }
 
             Text(
                 text = title,
+                color = MaterialTheme.colorScheme.onPrimary,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier
                     .padding(

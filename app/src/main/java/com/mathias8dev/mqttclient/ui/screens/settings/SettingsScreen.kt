@@ -1,6 +1,5 @@
 package com.mathias8dev.mqttclient.ui.screens.settings
 
-import android.widget.Space
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mathias8dev.mqttclient.domain.viewmodels.SettingsScreenViewModel
+import com.mathias8dev.mqttclient.storage.datastore.model.AppSettings
 import com.mathias8dev.mqttclient.ui.composables.ContentDetailsLayout
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
@@ -51,7 +51,7 @@ fun SettingsScreen(
                     actionContent = "Utiliser le dark Mode",
                     value = appSettings.useDarkMode,
                     onValueChanged = {
-                        viewModel.onUseDarkModeChanged(it)
+                        viewModel.onAppSettingsChanged(AppSettings::useDarkMode, it)
                     }
                 )
 
@@ -61,7 +61,25 @@ fun SettingsScreen(
                     actionContent = "Rendre le menu flottant",
                     value = appSettings.useFloatingMenu,
                     onValueChanged = {
-                        viewModel.onUseFloatingMenuChanged(it)
+                        viewModel.onAppSettingsChanged(AppSettings::useFloatingMenu, it)
+                    }
+                )
+
+                SwitchSettingItem(
+                    actionTitle = "Zoom",
+                    actionContent = "Rendre les graphs zoomables",
+                    value = appSettings.isZoomEnabled,
+                    onValueChanged = {
+                        viewModel.onAppSettingsChanged(AppSettings::isZoomEnabled, it)
+                    }
+                )
+
+                SwitchSettingItem(
+                    actionTitle = "Animation",
+                    actionContent = "Animer l'affichage des courbes",
+                    value = appSettings.animateChartDisplay,
+                    onValueChanged = {
+                        viewModel.onAppSettingsChanged(AppSettings::animateChartDisplay, it)
                     }
                 )
             }
@@ -74,7 +92,23 @@ fun SettingsScreen(
                     actionContent = "Maintenir la connexion même quand je n'utilise pas l'application",
                     value = appSettings.maintainConnectionToServerActive,
                     onValueChanged = {
-                        viewModel.onMaintainConnectionToServerActive(it)
+                        viewModel.onAppSettingsChanged(
+                            AppSettings::maintainConnectionToServerActive,
+                            it
+                        )
+                    }
+                )
+            }
+
+            SettingsItemSection(
+                sectionTitle = "Avancé"
+            ) {
+                SwitchSettingItem(
+                    actionTitle = "Développeur",
+                    actionContent = "Activer l'option pour les développeurs",
+                    value = appSettings.useDeveloperMode,
+                    onValueChanged = {
+                        viewModel.onAppSettingsChanged(AppSettings::useDeveloperMode, it)
                     }
                 )
             }

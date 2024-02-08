@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -69,7 +70,8 @@ fun ConfigurationScreen(
             }) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = null
+                    contentDescription = "Add icon",
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         },
@@ -118,6 +120,7 @@ fun ConfigurationScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     LottieAnimation(
+                        modifier = Modifier.size(92.dp),
                         animationRes = R.raw.lottie_empty
                     )
                     Text(

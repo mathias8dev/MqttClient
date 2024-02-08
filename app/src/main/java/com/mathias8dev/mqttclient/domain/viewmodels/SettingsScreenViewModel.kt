@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.KProperty1
 
 
 @HiltViewModel
@@ -19,26 +21,16 @@ class SettingsScreenViewModel @Inject constructor(
 
 
 
-    fun onUseDarkModeChanged(updatedValue: Boolean) {
+    fun <V> onAppSettingsChanged(property: KProperty1<AppSettings, V>, updatedValue: V) {
         viewModelScope.launch {
             appSettingsStore.updateData {
-                it.copy(useDarkMode = updatedValue)
-            }
-        }
-    }
+                val updated = it.copy()
+                updated.javaClass.declaredFields.find { field -> field.name == property.name }?.let {field ->
+                    field.isAccessible = true
+                    field.set(updated, updatedValue)
+                }
 
-    fun onMaintainConnectionToServerActive(updatedValue: Boolean) {
-        viewModelScope.launch {
-            appSettingsStore.updateData {
-                it.copy(maintainConnectionToServerActive = updatedValue)
-            }
-        }
-    }
-
-    fun onUseFloatingMenuChanged(updatedValue: Boolean) {
-        viewModelScope.launch {
-            appSettingsStore.updateData {
-                it.copy(useFloatingMenu = updatedValue)
+                updated
             }
         }
     }

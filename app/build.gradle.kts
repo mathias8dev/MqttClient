@@ -72,9 +72,14 @@ android {
 
 dependencies {
 
+    // Kotlin reflect
+    val kotlinVersion = "1.9.22"
+    implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
+
+
     // Vico
 
-    val vicoVersion = "1.13.1"
+    val vicoVersion = "2.0.0-alpha.6"
     implementation("com.patrykandpatrick.vico:compose:$vicoVersion")
     implementation("com.patrykandpatrick.vico:compose-m3:$vicoVersion")
     implementation("com.patrykandpatrick.vico:core:$vicoVersion")
