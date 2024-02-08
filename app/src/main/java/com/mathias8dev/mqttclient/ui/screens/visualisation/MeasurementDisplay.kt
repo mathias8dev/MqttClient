@@ -54,7 +54,8 @@ fun MeasurementDisplay(
                     ) {
                         LottieAnimation(
                             modifier = Modifier.size(92.dp),
-                            animationRes = R.raw.lottie_empty
+                            animationRes = R.raw.lottie_empty,
+                            repeatForever = true
                         )
                         Text(
                             text = "Aucune données disponible",
