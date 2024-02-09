@@ -4,13 +4,18 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.PowerManager
+import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat
 import androidx.datastore.core.DataStore
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.google.gson.Gson
+import com.mathias8dev.mqttclient.R
 import com.mathias8dev.mqttclient.domain.event.EventBus
 import com.mathias8dev.mqttclient.domain.event.MQTTClientEvent
-import com.mathias8dev.mqttclient.domain.notification.ServiceNotification
+import com.mathias8dev.mqttclient.domain.notification.NotificationDataRaw
+import com.mathias8dev.mqttclient.domain.notification.NotificationUtils
+import com.mathias8dev.mqttclient.domain.notification.toNotificationBuilder
 import com.mathias8dev.mqttclient.domain.receiver.FetcherBroadcastReceiver
 import com.mathias8dev.mqttclient.domain.utils.toMQTTServerUri
 import com.mathias8dev.mqttclient.storage.datastore.model.AppSettings
@@ -46,7 +51,6 @@ class MeasurementDataFetchService : LifecycleService() {
     lateinit var measurementRepository: MeasurementRepository
 
     private var wakeLock: PowerManager.WakeLock? = null
-    private var currentServiceNotification: ServiceNotification? = null
     private lateinit var wakeLockJob: Job
 
     private var isJobRunning: Boolean = false
@@ -54,18 +58,24 @@ class MeasurementDataFetchService : LifecycleService() {
     private lateinit var mqttClient: IMqttClient
     private var latestConfig: Config? = null
 
+
+    @RequiresApi(Build.VERSION_CODES.N)
     private fun onInit() {
-        Timber.d("Service init")
-        Timber.d("Dependencies initialized ? ${::measurementRepository.isInitialized}, ${::configRepository.isInitialized}")
+        Timber.d("DataFetchService: Service init")
+        Timber.d("DataFetchService: Dependencies initialized ? ${::measurementRepository.isInitialized}, ${::configRepository.isInitialized}")
         mqttOptions.isAutomaticReconnect = true
         mqttOptions.isCleanSession = true
         mqttOptions.connectionTimeout = 10
+
+        Timber.d("DataFetchService: Initialize the notification channel")
+        NotificationUtils.initDefaultChannel(this)
+        Timber.d("DataFetchService: Notification channel initialized")
 
 
         lifecycleScope.launch {
             appSettingsStore.data.collectLatest {
                 configRepository.findConfigById(it.selectedConfigId).let { config ->
-                    Timber.d("The found config with id ${it.selectedConfigId} is $config")
+                    Timber.d("DataFetchService: The found config with id ${it.selectedConfigId} is $config")
                     latestConfig = config?.copy()
                     onConfigChanged()
                 }
@@ -75,8 +85,8 @@ class MeasurementDataFetchService : LifecycleService() {
 
     private fun onConfigChanged() {
 
-        latestConfig?.let {config ->
-            Timber.d("OnConfigChanged, the config is $config")
+        latestConfig?.let { config ->
+            Timber.d("DataFetchService: OnConfigChanged, the config is $config")
             runCatching {
                 mqttClient = MqttClient(
                     config.toMQTTServerUri(),
@@ -84,7 +94,7 @@ class MeasurementDataFetchService : LifecycleService() {
                 )
             }.onFailure {
                 lifecycleScope.launch {
-                    Timber.d("Exception, the config is $config")
+                    Timber.d("DataFetchService: Exception, the config is $config")
                     EventBus.publish(
                         MQTTClientEvent.MQTTClientInitializationException(
                             config = config.copy(),
@@ -109,13 +119,13 @@ class MeasurementDataFetchService : LifecycleService() {
 
 
     private fun fetchData() {
-        Timber.d("FetchData called")
+        Timber.d("DataFetchService: FetchData called")
         if (::mqttClient.isInitialized && latestConfig != null) {
-            Timber.d("Client initialized and config not null")
+            Timber.d("DataFetchService: Client initialized and config not null")
             runCatching {
                 mqttClient.connect(mqttOptions)
             }.onFailure {
-                Timber.d("An error occurred when trying to connect to the server")
+                Timber.d("DataFetchService: An error occurred when trying to connect to the server")
                 lifecycleScope.launch {
                     EventBus.publish(
                         MQTTClientEvent.MQTTClientConnectException(
@@ -135,8 +145,9 @@ class MeasurementDataFetchService : LifecycleService() {
                         val payload: ByteArray = msg.payload
 
                         val gson = Gson()
-                        val measurementDto = gson.fromJson(String(payload), MeasurementDto::class.java)
-                        Timber.d("The retrieved payload is $measurementDto")
+                        val measurementDto =
+                            gson.fromJson(String(payload), MeasurementDto::class.java)
+                        Timber.d("DataFetchService: The retrieved payload is $measurementDto")
                         lifecycleScope.launch {
                             measurementRepository.insertMeasurement(
                                 measurementDto.toMeasurement()
@@ -145,7 +156,7 @@ class MeasurementDataFetchService : LifecycleService() {
 
                     }
                 }.onFailure {
-                    Timber.d("An error occurred when subscribing to the topic")
+                    Timber.d("DataFetchService: An error occurred when subscribing to the topic")
                     lifecycleScope.launch {
                         EventBus.publish(
                             MQTTClientEvent.MQTTClientTopicSubscriptionException(
@@ -162,7 +173,7 @@ class MeasurementDataFetchService : LifecycleService() {
     }
 
     private fun doJob() {
-        Timber.d("doJob called")
+        Timber.d("DataFetchService: doJob called")
         isJobRunning = true
         fetchData()
     }
@@ -174,7 +185,7 @@ class MeasurementDataFetchService : LifecycleService() {
         runCatching {
             mqttClient.disconnect()
         }.onFailure {
-            Timber.d("An error occurred when disconnecting from the server")
+            Timber.d("DataFetchService: An error occurred when disconnecting from the server")
             lifecycleScope.launch {
                 EventBus.publish(
                     MQTTClientEvent.MQTTClientDisconnectException(
@@ -193,7 +204,7 @@ class MeasurementDataFetchService : LifecycleService() {
     }
 
     private fun startWakeLock() {
-        Timber.d("Acquiring the wakelock")
+        Timber.d("DataFetchService: Acquiring the wakelock")
         val frequency = 120 * 60 * 1000L /*120 minutes*/
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(
@@ -210,9 +221,9 @@ class MeasurementDataFetchService : LifecycleService() {
                 try {
                     wakeLock?.release()
                 } catch (e: Exception) {
-                    Timber.i("ignore: cannot release the wakelock")
+                    Timber.i("DataFetchService: ignore: cannot release the wakelock")
                 }
-                Timber.i("Acquiring the wakelock again")
+                Timber.i("DataFetchService: Acquiring the wakelock again")
                 // let's keep 1 second without a wakelock
                 wakeLock?.acquire(timeInterval - 1000L)
                 delay(timeInterval)
@@ -227,27 +238,36 @@ class MeasurementDataFetchService : LifecycleService() {
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.N)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
-        Timber.d("Service onStart called")
+        Timber.d("DataFetchService: Service onStart called")
         startWakeLock()
-        Timber.d("WakeLock acquired")
+        Timber.d("DataFetchService: WakeLock acquired")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             runCatching {
-                Timber.i("starting foreground process")
-                currentServiceNotification = ServiceNotification(this, NOTIFICATION_ID, false)
+                Timber.i("DataFetchService: starting foreground process")
+                val notification = NotificationDataRaw(
+                    notificationId,
+                    iconRes = R.drawable.ic_launcher_background,
+                    content = "Le service de récupération des données est lancé",
+                    title = "MQTTClient"
+                ).toNotificationBuilder(this, NotificationUtils.Channel.Default.channelId).build()
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     startForeground(
-                        NOTIFICATION_ID,
-                        currentServiceNotification!!.notification!!,
+                        notificationId,
+                        notification,
                         ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
                     )
                 } else {
-                    startForeground(NOTIFICATION_ID, currentServiceNotification!!.notification)
+                    startForeground(
+                        notificationId,
+                        notification
+                    )
                 }
-                Timber.i("Starting foreground process successful!")
+                Timber.i("DataFetchService: Starting foreground process successful!")
             }.onFailure {
-                Timber.e("Error starting foreground process ${it.message}")
+                Timber.e("DataFetchService: Error starting foreground process ${it.message}")
             }
         }
         onInit()
@@ -257,7 +277,7 @@ class MeasurementDataFetchService : LifecycleService() {
 
     override fun onDestroy() {
         super.onDestroy()
-        Timber.i("onDestroy: Service is destroyed :( ")
+        Timber.i("DataFetchService: onDestroy: Service is destroyed :( ")
         stopJob()
         Intent(this, FetcherBroadcastReceiver::class.java).let {
             sendBroadcast(it)
@@ -268,9 +288,7 @@ class MeasurementDataFetchService : LifecycleService() {
 
     companion object {
         var currentService: MeasurementDataFetchService? = null
-
-        private const val NOTIFICATION_ID = 9974
-
+        private const val notificationId = 974
     }
 
 

@@ -1,8 +1,10 @@
 package com.mathias8dev.mqttclient
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -37,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -44,6 +47,10 @@ import com.mathias8dev.mqttclient.domain.event.EventBus
 import com.mathias8dev.mqttclient.domain.event.LocalLoggingEvents
 import com.mathias8dev.mqttclient.domain.event.LoggingEvent
 import com.mathias8dev.mqttclient.domain.event.MQTTClientEvent
+import com.mathias8dev.mqttclient.domain.notification.NotificationDataRaw
+import com.mathias8dev.mqttclient.domain.notification.NotificationEvent
+import com.mathias8dev.mqttclient.domain.notification.NotificationEventBus
+import com.mathias8dev.mqttclient.domain.notification.NotificationUtils
 import com.mathias8dev.mqttclient.domain.viewmodels.MainActivityViewModel
 import com.mathias8dev.mqttclient.storage.datastore.model.LocalAppSettings
 import com.mathias8dev.mqttclient.ui.screens.NavGraphs
@@ -54,6 +61,7 @@ import com.ramcosta.composedestinations.utils.currentDestinationFlow
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import kotlin.time.Duration.Companion.seconds
 
@@ -62,11 +70,18 @@ import kotlin.time.Duration.Companion.seconds
 class MainActivity : ComponentActivity() {
 
 
+    @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         super.onCreate(savedInstanceState)
 
+        NotificationUtils.initDefaultChannel(this)
 
+        lifecycleScope.launch {
+            NotificationUtils.asyncListenToNotifyEvents(
+                this@MainActivity
+            )
+        }
 
         setContent {
 

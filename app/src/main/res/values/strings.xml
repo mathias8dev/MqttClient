@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">MqttClient</string>
     <string name="running_in_background">Running in the background</string>
+    <string name="notification_name">Notifications générales</string>
+    <string name="notification_description">Affichage des notifications générales liées à la communication arrière plan avec le serveur MQTT.</string>
 </resources>
