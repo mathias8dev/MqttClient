@@ -11,14 +11,14 @@ val topicValidationConstraints = Yup.ValidationConstraints {
         errorMessage = "Le topic doit avoir une longueur minimale de 4"
     }
     maxLength {
-        length = 20
+        length = 40
         errorMessage = "Le topic ne doit pas dépasser plus de 20 caractères"
     }
 
-    regex {
+    /*regex {
         regex = Regex("^[a-zA-Z0-9_\\-().|{}]+$")
         errorMessage = "Ne peut pas contenir d'espace mais alpha numériques avec [-_|{}()]"
-    }
+    }*/
 }
 
 val portValidationConstraints = Yup.ValidationConstraints {

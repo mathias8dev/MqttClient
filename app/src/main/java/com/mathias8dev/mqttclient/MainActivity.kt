@@ -2,6 +2,8 @@ package com.mathias8dev.mqttclient
 
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
+import android.widget.LinearLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
@@ -83,26 +85,12 @@ class MainActivity : ComponentActivity() {
             )
         }
 
+
+
         setContent {
 
             val viewModel: MainActivityViewModel = hiltViewModel()
             val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
-            val loggingEvents = rememberSaveable(
-                saver = listSaver(
-                    save = {
-                        val gson = Gson()
-                        listOf(gson.toJson(it.toList()))
-                    },
-                    restore = {
-                        val gson = Gson()
-                        val typeToken = object : TypeToken<ArrayList<LoggingEvent>>() {}.type
-                        val data: List<LoggingEvent> = gson.fromJson(it.first(), typeToken)
-                        SnapshotStateList<LoggingEvent>().apply { addAll(data) }
-                    }
-                )
-            ) {
-                mutableStateListOf<LoggingEvent>()
-            }
             val navController = rememberNavController()
             val currentDestinationIsVisualisationScreen by produceState(
                 initialValue = true,
@@ -113,15 +101,10 @@ class MainActivity : ComponentActivity() {
                 }
             )
 
-            LaunchedEffect(Unit) {
-                EventBus.subscribe<LoggingEvent> {
-                    loggingEvents.add(it)
-                }
-            }
 
             CompositionLocalProvider(
                 LocalAppSettings provides appSettings,
-                LocalLoggingEvents provides loggingEvents
+                LocalLoggingEvents provides viewModel.loggingEvents
             ) {
                 MqttClientTheme(
                     darkTheme = appSettings.useDarkMode

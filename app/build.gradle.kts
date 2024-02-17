@@ -114,7 +114,9 @@ dependencies {
 
     // MQTT
     // https://mvnrepository.com/artifact/org.eclipse.paho/org.eclipse.paho.client.mqttv3
+    implementation ("androidx.legacy:legacy-support-v4:1.0.0")
     implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
+    implementation("org.eclipse.paho:org.eclipse.paho.android.service:1.1.1")
 
     val lifecycleVersion  = "2.7.0"
     val lottieVersion = "6.2.0"

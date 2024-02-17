@@ -39,6 +39,9 @@
             android:foregroundServiceType="location"
             android:launchMode="singleInstance" />
 
+        <service android:name="org.eclipse.paho.android.service.MqttService">
+        </service>
+
         <receiver
             android:name=".domain.receiver.FetcherBroadcastReceiver"
             android:enabled="true"

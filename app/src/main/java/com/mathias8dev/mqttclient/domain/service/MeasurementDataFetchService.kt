@@ -4,8 +4,8 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.PowerManager
+import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.core.app.NotificationCompat
 import androidx.datastore.core.DataStore
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
@@ -31,9 +31,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import org.eclipse.paho.client.mqttv3.IMqttClient
+import org.eclipse.paho.android.service.MqttAndroidClient
+import org.eclipse.paho.client.mqttv3.IMqttActionListener
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
+import org.eclipse.paho.client.mqttv3.IMqttToken
+import org.eclipse.paho.client.mqttv3.MqttCallback
 import org.eclipse.paho.client.mqttv3.MqttClient
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions
+import org.eclipse.paho.client.mqttv3.MqttMessage
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -55,7 +60,7 @@ class MeasurementDataFetchService : LifecycleService() {
 
     private var isJobRunning: Boolean = false
     private val mqttOptions = MqttConnectOptions()
-    private lateinit var mqttClient: IMqttClient
+    private var mqttClient: MqttAndroidClient? = null
     private var latestConfig: Config? = null
 
 
@@ -88,9 +93,10 @@ class MeasurementDataFetchService : LifecycleService() {
         latestConfig?.let { config ->
             Timber.d("DataFetchService: OnConfigChanged, the config is $config")
             runCatching {
-                mqttClient = MqttClient(
+                mqttClient = MqttAndroidClient(
+                    this,
                     config.toMQTTServerUri(),
-                    MqttClient.generateClientId()
+                    MqttClient.generateClientId(),
                 )
             }.onFailure {
                 lifecycleScope.launch {
@@ -120,10 +126,29 @@ class MeasurementDataFetchService : LifecycleService() {
 
     private fun fetchData() {
         Timber.d("DataFetchService: FetchData called")
-        if (::mqttClient.isInitialized && latestConfig != null) {
+        if (mqttClient !== null && latestConfig != null) {
             Timber.d("DataFetchService: Client initialized and config not null")
             runCatching {
-                mqttClient.connect(mqttOptions)
+                val token =mqttClient?.connect(mqttOptions)
+                token?.actionCallback = object : IMqttActionListener {
+                    override fun onSuccess(asyncActionToken: IMqttToken)                        {
+                        Timber.i("Connectied successfully")
+                        Log.d("MeasurementDataFetch", "client connected successfully")
+                        onConnectedSuccessfully()
+                    }
+                    override fun onFailure(asyncActionToken: IMqttToken, exception: Throwable) {
+                        //connectionStatus = false
+                        Timber.i("Impossible to connect")
+                        lifecycleScope.launch {
+                            EventBus.publish(
+                                MQTTClientEvent.MQTTClientConnectException(
+                                    config = latestConfig?.copy(),
+                                    cause = exception
+                                )
+                            )
+                        }
+                    }
+                }
             }.onFailure {
                 Timber.d("DataFetchService: An error occurred when trying to connect to the server")
                 lifecycleScope.launch {
@@ -140,36 +165,85 @@ class MeasurementDataFetchService : LifecycleService() {
                         MQTTClientEvent.MQTTClientConnectedToServer
                     )
                 }
-                runCatching {
-                    mqttClient.subscribe(latestConfig!!.currentTopic) { _, msg ->
-                        val payload: ByteArray = msg.payload
 
-                        val gson = Gson()
-                        val measurementDto =
-                            gson.fromJson(String(payload), MeasurementDto::class.java)
-                        Timber.d("DataFetchService: The retrieved payload is $measurementDto")
-                        lifecycleScope.launch {
-                            measurementRepository.insertMeasurement(
-                                measurementDto.toMeasurement()
-                            )
+
+            }
+        }
+    }
+
+    private fun onConnectedSuccessfully() {
+        runCatching {
+            mqttClient?.let {
+                it.subscribe(
+                    latestConfig!!.currentTopic,
+                    2,
+                    null,
+                    object : IMqttActionListener {
+                        override fun onSuccess(asyncActionToken: IMqttToken?) {
+                            listenToMessages()
                         }
 
-                    }
-                }.onFailure {
-                    Timber.d("DataFetchService: An error occurred when subscribing to the topic")
+                        override fun onFailure(
+                            asyncActionToken: IMqttToken?,
+                            exception: Throwable?
+                        ) {
+                            Timber.d("DataFetchService: An error occurred when subscribing to the topic")
+                            lifecycleScope.launch {
+                                EventBus.publish(
+                                    MQTTClientEvent.MQTTClientTopicSubscriptionException(
+                                        config = latestConfig?.copy(),
+                                        cause = exception ?: Exception()
+                                    )
+                                )
+                            }
+                        }
+                    })
+            }
+        }.onFailure {
+            Timber.d("DataFetchService: An error occurred when subscribing to the topic")
+            lifecycleScope.launch {
+                EventBus.publish(
+                    MQTTClientEvent.MQTTClientTopicSubscriptionException(
+                        config = latestConfig?.copy(),
+                        cause = it
+                    )
+                )
+            }
+        }
+
+    }
+
+    private fun listenToMessages() {
+        mqttClient?.setCallback(object : MqttCallback {
+            override fun connectionLost(cause: Throwable) {
+                //connectionStatus = false
+                // Give your callback on failure here
+            }
+
+            override fun messageArrived(topic: String, message: MqttMessage) {
+                try {
+                    Log.d("MeasurementDataFetch", "Message received")
+                    val data = String(message.payload, charset("UTF-8"))
+                    val gson = Gson()
+                    val measurementDto =
+                        gson.fromJson(data, MeasurementDto::class.java)
+                    Timber.d("DataFetchService: The retrieved payload is $measurementDto")
                     lifecycleScope.launch {
-                        EventBus.publish(
-                            MQTTClientEvent.MQTTClientTopicSubscriptionException(
-                                config = latestConfig?.copy(),
-                                cause = it
-                            )
+                        measurementRepository.insertMeasurement(
+                            measurementDto.toMeasurement()
                         )
                     }
+
+                } catch (e: Exception) {
+                    Timber.d("An error occurred when receiving message")
+                    Timber.e(e)
                 }
             }
 
-        }
-
+            override fun deliveryComplete(token: IMqttDeliveryToken) {
+                // Acknowledgement on delivery complete
+            }
+        })
     }
 
     private fun doJob() {
@@ -179,11 +253,11 @@ class MeasurementDataFetchService : LifecycleService() {
     }
 
     private fun stopJob() {
-        if (!isJobRunning || !::mqttClient.isInitialized) return
+        if (!isJobRunning || mqttClient == null) return
 
         isJobRunning = false
         runCatching {
-            mqttClient.disconnect()
+            mqttClient?.disconnect()
         }.onFailure {
             Timber.d("DataFetchService: An error occurred when disconnecting from the server")
             lifecycleScope.launch {
@@ -252,7 +326,8 @@ class MeasurementDataFetchService : LifecycleService() {
                     iconRes = R.drawable.ic_launcher_background,
                     content = "Le service de récupération des données est lancé",
                     title = "MQTTClient"
-                ).toNotificationBuilder(this, NotificationUtils.Channel.Default.channelId).build()
+                ).toNotificationBuilder(this, NotificationUtils.Channel.Default.channelId)
+                    .build()
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     startForeground(
                         notificationId,
